@@ -195,6 +195,10 @@ public:
         }
         return true;
     }
+    bool operator !=(const MyLongNum& rhs) const
+    {
+        return !(*this == rhs);
+    }
     bool operator >(const MyLongNum& rhs) const
     {
         if (!negative && rhs.negative) {return true;}
