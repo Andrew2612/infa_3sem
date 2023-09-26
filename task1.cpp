@@ -28,7 +28,7 @@ private:
             }
         }
 
-        int index = 0;
+        size_t index = 0;
         if (negative) {index++;}
         for (index; index < length; index++)
         {
