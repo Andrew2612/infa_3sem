@@ -50,36 +50,31 @@ private:
         MyLongNum res;
         size_t index = 0;
         bool increase = false;
-        size_t sum = 0;
+        u16 sum = 0;
 
         while (index < a.length && index < b.length)
         {
-            sum = a.digits[a.length - index - 1] + b.digits[b.length - index - 1];
-            if (increase) {sum++;}
+            sum = sum/10 + a.digits[a.length - index - 1] + b.digits[b.length - index - 1];
 
-            if (sum > 9) {increase = true; sum -= 10;}
-            res.digits.insert(res.digits.begin(), sum);
+            res.digits.insert(res.digits.begin(), sum % 10);
             index++;
         }
         while (index < a.length)
         {
-            sum = a.digits[a.length - index - 1];
-            if (increase) {sum++;}
+            sum = sum/10 + a.digits[a.length - index - 1];
 
-            if (sum > 9) {increase = true; sum -= 10;}
-            res.digits.insert(res.digits.begin(), sum);
+            res.digits.insert(res.digits.begin(), sum % 10);
             index++;
         }
         while (index < b.length)
         {
-            sum = b.digits[b.length - index - 1];
-            if (increase) {sum++;}
+            sum = sum/10 + b.digits[b.length - index - 1];
 
-            if (sum > 9) {increase = true; sum -= 10;}
-            res.digits.insert(res.digits.begin(), sum);
+            res.digits.insert(res.digits.begin(), sum % 10);
             index++;
         }
-        if (increase) {res.digits.insert(res.digits.begin(), 1);}
+        if (sum/10 != 0) {res.digits.insert(res.digits.begin(), 1);}
+
         res.length = res.digits.size();
         res.negative = a.negative;
         return res;
@@ -87,22 +82,24 @@ private:
     MyLongNum SubtractMyNum(const MyLongNum& a, const MyLongNum& b) const
     {
         MyLongNum res;
-        int index = 0;
+        size_t index = 0;
         bool decrease = false;
-        int sum = 0;
+        u16 sum = 0;
 
         while (index < a.length && index < b.length)
         {
-            if (decrease) {sum = -1;}
-            else {sum = 0;}
             if (a.digits[a.length - index - 1] > b.digits[b.length - index - 1])
             {
-                sum += a.digits[a.length - index - 1] - b.digits[b.length - index - 1];
+                sum = a.digits[a.length - index - 1] - b.digits[b.length - index - 1];
+                if (decrease) {sum -= 1;}
+
                 decrease = false;
             }
             else
             {
-                sum += 10 + a.digits[a.length - index - 1] - b.digits[b.length - index - 1];
+                sum = 10 + a.digits[a.length - index - 1] - b.digits[b.length - index - 1];
+                if (decrease) {sum -= 1;}
+
                 if (sum == 10) {sum = 0; decrease = false;}
                 else {decrease = true;}
             }
@@ -110,12 +107,16 @@ private:
             res.digits.insert(res.digits.begin(), sum);
             index++;
         }
+
         while (index < a.length)
         {
             sum = a.digits[a.length - index - 1];
-            if (decrease) {sum--;}
 
-            if (sum < 0) {decrease = true; sum += 10;}
+            if (decrease)
+            {
+                if (sum == 0) {decrease = true; sum = 9;}
+                else {sum--;}
+            }
             res.digits.insert(res.digits.begin(), sum);
             index++;
         }
@@ -123,16 +124,17 @@ private:
 
         for (size_t i = 0; i < res.length; i++)
         {
-            if (res.digits[i] == 0)
+            if (res.digits[0] == 0)
             {
                 res.digits.erase(res.digits.cbegin());
-                res.length--;
             }
             else
             {
                 break;
             }
         }
+
+        res.length = res.digits.size();
         return res;
     }
 
@@ -252,13 +254,9 @@ public:
 
     MyLongNum operator -() const
     {
-        MyLongNum res;
-        res.length = length;
+        MyLongNum res = *this;
         res.negative = !negative;
-        for (int i = 0; i < length; i++)
-        {
-            res.digits.push_back(digits[i]);
-        }
+
         return res;
     }
 
@@ -269,14 +267,26 @@ public:
 
         if (!negative && b.negative)
         {
-            if (length > b.length) {return SubtractMyNum(*this, b);}
+            if (length == b.length)
+            {
+                if (*this > -b) {return SubtractMyNum(*this, b);}
+                else {return -SubtractMyNum(-b, -*this);}
+            }
+            else if (length > b.length) {return SubtractMyNum(*this, b);}
             else {return -SubtractMyNum(-b, -*this);}
         }
         if (negative && !b.negative)
         {
-            if (b.length > length) {return SubtractMyNum(b, *this);}
+            if (length == b.length)
+            {
+                if (-*this > b) {return -SubtractMyNum(-*this, -b);}
+                else {return SubtractMyNum(b, *this);}
+            }
+            else if (b.length > length) {return SubtractMyNum(b, *this);}
             else {return -SubtractMyNum(-*this, -b);}
         }
+
+        return b;
     }
 
     MyLongNum operator-(MyLongNum& b) const
@@ -286,7 +296,7 @@ public:
         
         if (!negative && !b.negative)
         {
-            if (length > b.length) {return SubtractMyNum(*this, b);}
+            if (length >= b.length) {return SubtractMyNum(*this, b);}
             else {return -SubtractMyNum(-b, -*this);}
         }
 
@@ -295,6 +305,8 @@ public:
             if (b.length > length) {return SubtractMyNum(b, *this);}
             else {return -SubtractMyNum(-*this, -b);}
         }
+
+        return b;
     }
 
     MyLongNum& operator +=(MyLongNum& rhs)
@@ -334,6 +346,57 @@ public:
         *this -= one;
         return tmp;
     }
+
+    MyLongNum operator *(MyLongNum& b) const
+    {
+        MyLongNum res;
+
+        size_t index = 0;
+        u16 sum = 0;
+
+        MyLongNum tmp;
+
+        for (size_t i = 0; i < length; i++)
+        {
+            for (size_t j = 0; j < i; j++)
+            {
+                tmp.digits.push_back(0);
+                tmp.length++;
+            }
+
+            for (size_t j = 0; j < b.length; j++)
+            {
+                sum = sum/10 + b.digits[b.length - 1 - j] * digits[length - 1 - i];
+
+                tmp.digits.insert(tmp.digits.begin(), sum % 10);
+                tmp.length++;
+            }
+
+            sum /= 10;
+            if (sum != 0)
+            {
+                tmp.digits.insert(tmp.digits.begin(), sum % 10);
+                tmp.length++;
+                sum = 0;
+            }
+
+            res += tmp;
+
+            tmp.digits.clear();
+            tmp.length = 0;
+        }
+
+        if ((negative && b.negative)
+            || (!negative && !b.negative)) {res.negative = false;}
+        else {res.negative = true;}
+        
+        return res;
+    }
+    MyLongNum& operator *=(MyLongNum& rhs)
+    {
+        *this = *this * rhs;
+        return *this;
+    }
 };
 
 std::ostream& operator<<(std::ostream & os, const MyLongNum& num) {
@@ -353,11 +416,12 @@ std::ostream& operator<<(std::ostream & os, const MyLongNum& num) {
 
 int main()
 {
-    MyLongNum a{"1000000000000000000000000"};
-    MyLongNum b{"-156546852131563416"};
+    MyLongNum a{"1000004"};
+    MyLongNum b{"-10000005"};
+    MyLongNum c = a + b;
     
-    a += b;
+    c *= a;
 
-    std::cout << ++a;
+    std::cout << ++c;
     return 0;
 }
