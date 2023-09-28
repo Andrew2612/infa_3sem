@@ -413,15 +413,3 @@ std::ostream& operator<<(std::ostream & os, const MyLongNum& num) {
 
     return os;
 }
-
-int main()
-{
-    MyLongNum a{"1000004"};
-    MyLongNum b{"-10000005"};
-    MyLongNum c = a + b;
-    
-    c *= a;
-
-    std::cout << ++c;
-    return 0;
-}
