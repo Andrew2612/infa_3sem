@@ -70,25 +70,25 @@ class SharedPtr {
 public:
     SharedPtr() noexcept : _ptr(), _block() { }
 
-    SharedPtr(const SharedPtr& o) noexcept : _ptr(o.GetPtr()), _block(o.GetBlock())
+    SharedPtr(const SharedPtr& o) noexcept : _ptr(o._ptr), _block(o._block)
     {
         Inc();
     }
 
     SharedPtr& operator=(const SharedPtr& o) noexcept
     {
-        if (_block != o.GetBlock())
+        if (_block != o._block)
         {
             this->~SharedPtr();
         }
 
-        _ptr = o.GetPtr();
-        _block = o.GetBlock();
+        _ptr = o._ptr;
+        _block = o._block;
         Inc();
         return *this;
     }
     
-    SharedPtr(SharedPtr&& o) noexcept : _ptr(o.GetPtr()), _block(o.GetBlock())
+    SharedPtr(SharedPtr&& o) noexcept : _ptr(o._ptr), _block(o._block)
     {
         Inc();
         o.Reset();
@@ -96,13 +96,13 @@ public:
     
     SharedPtr& operator=(SharedPtr&& o) noexcept
     {
-        if (_block != o.GetBlock())
+        if (_block != o._block)
         {
             this->~SharedPtr();
         }
 
-        _ptr = o.GetPtr();
-        _block = o.GetBlock();
+        _ptr = o._ptr;
+        _block = o._block;
         Inc();
         o.Reset();
         return *this;
@@ -151,16 +151,6 @@ private:
     T* _ptr;
     RefCntBlock* _block;
 
-
-    RefCntBlock* GetBlock() const noexcept
-    {
-        return _block;
-    }
-    T* GetPtr() const noexcept
-    {
-        return _ptr;
-    }
-
     void Inc() noexcept
     {
         if (_block != nullptr)
@@ -176,25 +166,25 @@ class WeakPtr {
 public:
     WeakPtr() noexcept : _block() { }
 
-    WeakPtr(const WeakPtr& o) noexcept : _ptr(o.GetPtr()), _block(o.GetBlock())
+    WeakPtr(const WeakPtr& o) noexcept : _ptr(o._ptr), _block(o._block)
     {
         Inc();
     }
 
     WeakPtr& operator=(const WeakPtr& o) noexcept
     {
-        if (_block != o.GetBlock())
+        if (_block != o._block)
         {
             this->~WeakPtr();
         }
 
-        _ptr = o.GetPtr(),
-        _block = o.GetBlock();
+        _ptr = o._ptr;
+        _block = o._block;
         Inc();
         return *this;
     }
     
-    WeakPtr(WeakPtr&& o) noexcept : _ptr(o.GetPtr()), _block(o.GetBlock())
+    WeakPtr(WeakPtr&& o) noexcept : _ptr(o._ptr), _block(o._block)
     {
         Inc();
         o.Reset();
@@ -202,32 +192,32 @@ public:
     
     WeakPtr& operator=(WeakPtr&& o) noexcept
     {
-        if (_block != o.GetBlock())
+        if (_block != o._block)
         {
             this->~WeakPtr();
         }
 
-        _block = o.GetBlock();
-        _ptr = o.GetPtr(),
+        _block = o._block;
+        _ptr = o._ptr;
         Inc();
         o.Reset();
         return *this;
     }
     
-    WeakPtr(const SharedPtr<T>& o) noexcept : _ptr(o.GetPtr()), _block(o.GetBlock())
+    WeakPtr(const SharedPtr<T>& o) noexcept : _ptr(o._ptr), _block(o._block)
     {
         Inc();
     };
     
     WeakPtr& operator=(const SharedPtr<T>& o) noexcept
     {
-        if (_block != o.GetBlock())
+        if (_block != o._block)
         {
             this->~WeakPtr();
         }
 
-        _block = o.GetBlock();
-        _ptr = o.GetPtr();
+        _block = o._block;
+        _ptr = o._ptr;
         Inc();
         return *this;
     }
@@ -268,15 +258,6 @@ private:
     T* _ptr;
     RefCntBlock* _block;
 
-    RefCntBlock* GetBlock() const noexcept
-    {
-        return _block;
-    }
-    T* GetPtr() const noexcept
-    {
-        return _ptr;
-    }
-
     void Inc() noexcept
     {
         if (_block != nullptr)
@@ -287,7 +268,7 @@ private:
 };
 
 template <class T>
-SharedPtr<T>::SharedPtr(const WeakPtr<T>& o) noexcept : _ptr(o.GetPtr()), _block(o.GetBlock())
+SharedPtr<T>::SharedPtr(const WeakPtr<T>& o) noexcept : _ptr(o._ptr), _block(o._block)
 {
     Inc();
 }
